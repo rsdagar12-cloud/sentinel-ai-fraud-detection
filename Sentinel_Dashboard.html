@@ -1,0 +1,332 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sentinel AI Fraud Detection Dashboard</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 30px;
+        background: #f5f7fa;
+        color: #222;
+    }
+    h1 {
+        background: #17365d;
+        color: white;
+        padding: 18px;
+        border-radius: 8px;
+    }
+    .subtitle {
+        color: #555;
+        margin-bottom: 25px;
+    }
+    .cards {
+        display: flex;
+        gap: 16px;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+    }
+    .card {
+        background: white;
+        border-radius: 8px;
+        padding: 18px;
+        min-width: 180px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .card .label {
+        font-size: 13px;
+        color: #666;
+    }
+    .card .value {
+        font-size: 28px;
+        font-weight: bold;
+        margin-top: 8px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    th {
+        background: #d9eaf7;
+        padding: 10px;
+        text-align: left;
+        border: 1px solid #ccc;
+    }
+    td {
+        padding: 9px;
+        border: 1px solid #ddd;
+        vertical-align: top;
+    }
+    .risk-high {
+        background: #ffc7ce;
+        color: #9c0006;
+        font-weight: bold;
+    }
+    .risk-medium {
+        background: #ffeb9c;
+        color: #9c6500;
+        font-weight: bold;
+    }
+    .risk-low {
+        background: #c6efce;
+        color: #006100;
+        font-weight: bold;
+    }
+    .section-title {
+        margin-top: 35px;
+        color: #17365d;
+    }
+    .bar-row {
+        display: flex;
+        align-items: center;
+        margin: 8px 0;
+    }
+    .bar-label {
+        width: 140px;
+        font-weight: bold;
+    }
+    .bar {
+        height: 24px;
+        background: #4f81bd;
+        color: white;
+        padding-left: 8px;
+        line-height: 24px;
+        border-radius: 4px;
+    }
+    .note {
+        background: #fff3cd;
+        padding: 14px;
+        border-left: 5px solid #d39e00;
+        margin-top: 25px;
+    }
+</style>
+</head>
+<body>
+
+<h1>Sentinel AI Fraud Detection Dashboard</h1>
+<p class="subtitle">AI-assisted transaction monitoring for reseller pattern detection across store locations.</p>
+
+<div class="cards">
+    <div class="card">
+        <div class="label">Total Flagged Transactions</div>
+        <div class="value">8</div>
+    </div>
+    <div class="card">
+        <div class="label">High Risk</div>
+        <div class="value">7</div>
+    </div>
+    <div class="card">
+        <div class="label">Low Risk</div>
+        <div class="value">1</div>
+    </div>
+    <div class="card">
+        <div class="label">Average Confidence</div>
+        <div class="value">0.77</div>
+    </div>
+</div>
+
+<h2 class="section-title">Risk Level Summary</h2>
+
+    <div class="bar-row">
+        <div class="bar-label">HIGH</div>
+        <div class="bar" style="width:400px;">6</div>
+    </div>
+    
+    <div class="bar-row">
+        <div class="bar-label">MEDIUM-HIGH</div>
+        <div class="bar" style="width:66px;">1</div>
+    </div>
+    
+    <div class="bar-row">
+        <div class="bar-label">LOW</div>
+        <div class="bar" style="width:66px;">1</div>
+    </div>
+    
+<h2 class="section-title">Flagged Transactions</h2>
+<table>
+<tr>
+    <th>Txn ID</th>
+    <th>Store</th>
+    <th>Products</th>
+    <th>Quantity</th>
+    <th>Confidence</th>
+    <th>Risk Level</th>
+    <th>Reason</th>
+    <th>Recommended Action</th>
+</tr>
+
+<tr>
+    <td>T001</td>
+    <td>NYC-014</td>
+    <td>PS5 Console</td>
+    <td>1</td>
+    <td>0.88</td>
+    <td class="risk-high">HIGH</td>
+    <td>Payment with stacked gift cards, declined receipt, inquired about additional inventory in back room - classic reseller behavior</td>
+    <td>Review security footage, trace GiftCard-A93 origin, alert other NYC stores</td>
+</tr>
+
+<tr>
+    <td>T002</td>
+    <td>NYC-027</td>
+    <td>PS5 Console</td>
+    <td>1</td>
+    <td>0.9</td>
+    <td class="risk-high">HIGH</td>
+    <td>Cashier recognized repeat buyer (&#x27;brown jacket guy&#x27;), same gift card (A93) used as T001 at different store within 2 hours, fast transaction pattern</td>
+    <td>Share description with security team, implement purchase tracking system</td>
+</tr>
+
+<tr>
+    <td>T003</td>
+    <td>NJ-003</td>
+    <td>PS5 Console; Pokemon ETB</td>
+    <td>2</td>
+    <td>0.82</td>
+    <td class="risk-high">HIGH</td>
+    <td>Purchased 2 high-value consoles, cashier noted emotionless transaction and stacked gift cards, inconsistent with genuine gift purchase behavior</td>
+    <td>Monitor for repeat visits, implement ID check policy for high-value electronics</td>
+</tr>
+
+<tr>
+    <td>T004</td>
+    <td>NYC-014</td>
+    <td>Pokemon ETB</td>
+    <td>3</td>
+    <td>0.85</td>
+    <td class="risk-high">MEDIUM-HIGH</td>
+    <td>Checking SKU date codes and demanding sealed boxes indicates knowledge of collector market and intent to resell, part of gift card network (C77)</td>
+    <td>Limit Pokemon ETB purchases per customer, monitor for returns/exchanges</td>
+</tr>
+
+<tr>
+    <td>T005</td>
+    <td>NYC-099</td>
+    <td>PS5 Console</td>
+    <td>1</td>
+    <td>0.87</td>
+    <td class="risk-high">HIGH</td>
+    <td>Asked about inventory at other stores, same gift card (C77) as T004, coordinated multi-store purchasing pattern</td>
+    <td>Cross-reference with other stores, share buyer description across NYC region</td>
+</tr>
+
+<tr>
+    <td>T006</td>
+    <td>LA-021</td>
+    <td>AirPods Pro</td>
+    <td>2</td>
+    <td>0.05</td>
+    <td class="risk-low">LOW</td>
+    <td>Normal family purchase with credit card, cashier noted nothing unusual</td>
+    <td>No action required - legitimate transaction</td>
+</tr>
+
+<tr>
+    <td>T007</td>
+    <td>NYC-027</td>
+    <td>PS5 Console</td>
+    <td>1</td>
+    <td>0.93</td>
+    <td class="risk-high">HIGH</td>
+    <td>Cashier noted &#x27;different guy but exact same script&#x27; - indicates coordinated network operation, asking about stock at other locations, gift card D02 shared with T008</td>
+    <td>High priority - evidence of organized network, coordinate with loss prevention team immediately</td>
+</tr>
+
+<tr>
+    <td>T008</td>
+    <td>NJ-003</td>
+    <td>Pokemon ETB</td>
+    <td>2</td>
+    <td>0.89</td>
+    <td class="risk-high">HIGH</td>
+    <td>Carrying empty duffel bag (preparation for bulk purchases), asked about restock schedule (planning future purchases), same gift card (D02) as T007 at different store</td>
+    <td>Alert store management, implement bag check policy, coordinate with NYC-027 on shared gift card usage</td>
+</tr>
+
+</table>
+
+<h2 class="section-title">Flagged Transactions by Store</h2>
+
+    <div class="bar-row">
+        <div class="bar-label">NYC-014</div>
+        <div class="bar" style="width:400px;">2</div>
+    </div>
+    
+    <div class="bar-row">
+        <div class="bar-label">NYC-027</div>
+        <div class="bar" style="width:400px;">2</div>
+    </div>
+    
+    <div class="bar-row">
+        <div class="bar-label">NJ-003</div>
+        <div class="bar" style="width:400px;">2</div>
+    </div>
+    
+    <div class="bar-row">
+        <div class="bar-label">NYC-099</div>
+        <div class="bar" style="width:200px;">1</div>
+    </div>
+    
+    <div class="bar-row">
+        <div class="bar-label">LA-021</div>
+        <div class="bar" style="width:200px;">1</div>
+    </div>
+    
+    <h2 class="section-title">Suspected Networks</h2>
+    <table>
+    <tr>
+        <th>Network ID</th>
+        <th>Network Name</th>
+        <th>Transactions</th>
+        <th>Gift Cards</th>
+        <th>Stores</th>
+        <th>Products</th>
+        <th>Timeframe</th>
+        <th>Confidence</th>
+        <th>Risk Level</th>
+        <th>Estimated Loss</th>
+        <th>Indicators</th>
+        <th>Recommended Action</th>
+    </tr>
+    
+        <tr>
+            <td>NETWORK-1</td>
+            <td>NYC Metro PS5 Reseller Ring</td>
+            <td>T001; T002; T004; T005; T007</td>
+            <td>GiftCard-A93; GiftCard-C77; GiftCard-D02</td>
+            <td>NYC-014; NYC-027; NYC-099</td>
+            <td>PS5 Console; Pokemon ETB</td>
+            <td>2024-11-12 to 2024-11-14</td>
+            <td>0.92</td>
+            <td class="risk-high">HIGH</td>
+            <td>$3500+</td>
+            <td>Multiple gift cards used across different stores within same geographic region; Repeat purchases of high-demand PS5 consoles; Cashier notes indicate coordinated behavior - asking about stock at other locations; Pattern of purchases at NYC-014 and NYC-027 stores; Quick in-and-out transactions declining receipts; Same gift card split across multiple store locations</td>
+            <td>Flag gift cards for enhanced monitoring, alert store managers in NYC region, coordinate with law enforcement if gift cards are fraudulent</td>
+        </tr>
+        
+        <tr>
+            <td>NETWORK-2</td>
+            <td>NJ-NYC Cross-Border Operation</td>
+            <td>T003; T007; T008</td>
+            <td>GiftCard-B14; GiftCard-D02</td>
+            <td>NJ-003; NYC-027</td>
+            <td>PS5 Console; Pokemon ETB</td>
+            <td>2024-11-12 to 2024-11-14</td>
+            <td>0.85</td>
+            <td class="risk-high">HIGH</td>
+            <td>$2500+</td>
+            <td>Gift card D02 used at both NJ-003 and NYC-027 stores; Focus on high-resale collectibles (Pokemon ETB); Cashier noted buyer carrying empty duffel bag; Questions about restock schedules indicate planning for future purchases; Similar behavioral patterns across stores</td>
+            <td>Monitor NJ-003 and coordinate with NYC-027, implement purchase limits on Pokemon products</td>
+        </tr>
+        </table>
+<div class="note">
+<strong>Responsible AI Note:</strong><br>
+This analysis is based on transactional patterns, cashier observations, and payment methods. While confidence scores are provided, these are risk indicators and not definitive proof of illegal activity. Recommendations should be implemented with consideration for: (1) Customer privacy rights - individuals may have legitimate reasons for purchasing multiple items; (2) Bias mitigation - physical descriptions or behavioral patterns should not lead to profiling; (3) Due process - suspected fraud should be investigated through proper channels before any punitive action; (4) Gift card legitimacy - cards may have been purchased legally even if used for reselling purposes; (5) Geographic correlation may be coincidental. All flagged transactions should undergo human review before final action. Store policies should be applied consistently to all customers regardless of appearance or perceived intent. If gift cards are suspected to be fraudulent (obtained through scams/theft), coordinate with law enforcement. If reselling is the primary concern, implement fair purchase limits that apply to all customers.
+</div>
+
+</body>
+</html>

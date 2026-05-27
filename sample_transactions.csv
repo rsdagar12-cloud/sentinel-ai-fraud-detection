@@ -1,0 +1,5 @@
+txn_id,store_id,products,quantity,payment_method,cashier_note
+T101,NYC-014,PS5 Console,1,GiftCard-A93,Customer paid with stack of gift cards and asked if more were available in back
+T102,NYC-027,PS5 Console,1,GiftCard-A93,Same buyer pattern noted from previous day and declined receipt
+T103,NJ-003,Pokemon ETB,2,GiftCard-B14,Customer asked about restock schedule and carried empty duffel bag
+T104,LA-021,AirPods Pro,1,Visa-4421,Normal family purchase nothing unusual

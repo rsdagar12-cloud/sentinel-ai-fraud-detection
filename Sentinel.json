@@ -1,0 +1,180 @@
+{
+  "suspected_networks": [
+    {
+      "network_id": "NETWORK-1",
+      "network_name": "NYC Metro PS5 Reseller Ring",
+      "gift_cards": [
+        "GiftCard-A93",
+        "GiftCard-C77",
+        "GiftCard-D02"
+      ],
+      "transactions": [
+        "T001",
+        "T002",
+        "T004",
+        "T005",
+        "T007"
+      ],
+      "stores": [
+        "NYC-014",
+        "NYC-027",
+        "NYC-099"
+      ],
+      "total_items": 7,
+      "primary_products": [
+        "PS5 Console",
+        "Pokemon ETB"
+      ],
+      "timeframe": "2024-11-12 to 2024-11-14",
+      "confidence": 0.92,
+      "indicators": [
+        "Multiple gift cards used across different stores within same geographic region",
+        "Repeat purchases of high-demand PS5 consoles",
+        "Cashier notes indicate coordinated behavior - asking about stock at other locations",
+        "Pattern of purchases at NYC-014 and NYC-027 stores",
+        "Quick in-and-out transactions declining receipts",
+        "Same gift card split across multiple store locations"
+      ],
+      "estimated_loss": "$3500+",
+      "recommended_action": "Flag gift cards for enhanced monitoring, alert store managers in NYC region, coordinate with law enforcement if gift cards are fraudulent"
+    },
+    {
+      "network_id": "NETWORK-2",
+      "network_name": "NJ-NYC Cross-Border Operation",
+      "gift_cards": [
+        "GiftCard-B14",
+        "GiftCard-D02"
+      ],
+      "transactions": [
+        "T003",
+        "T007",
+        "T008"
+      ],
+      "stores": [
+        "NJ-003",
+        "NYC-027"
+      ],
+      "total_items": 5,
+      "primary_products": [
+        "PS5 Console",
+        "Pokemon ETB"
+      ],
+      "timeframe": "2024-11-12 to 2024-11-14",
+      "confidence": 0.85,
+      "indicators": [
+        "Gift card D02 used at both NJ-003 and NYC-027 stores",
+        "Focus on high-resale collectibles (Pokemon ETB)",
+        "Cashier noted buyer carrying empty duffel bag",
+        "Questions about restock schedules indicate planning for future purchases",
+        "Similar behavioral patterns across stores"
+      ],
+      "estimated_loss": "$2500+",
+      "recommended_action": "Monitor NJ-003 and coordinate with NYC-027, implement purchase limits on Pokemon products"
+    }
+  ],
+  "individual_flags": [
+    {
+      "txn_id": "T001",
+      "store_id": "NYC-014",
+      "products": [
+        "PS5 Console"
+      ],
+      "quantity": 1,
+      "confidence": 0.88,
+      "risk_level": "HIGH",
+      "reason": "Payment with stacked gift cards, declined receipt, inquired about additional inventory in back room - classic reseller behavior",
+      "recommended_action": "Review security footage, trace GiftCard-A93 origin, alert other NYC stores"
+    },
+    {
+      "txn_id": "T002",
+      "store_id": "NYC-027",
+      "products": [
+        "PS5 Console"
+      ],
+      "quantity": 1,
+      "confidence": 0.9,
+      "risk_level": "HIGH",
+      "reason": "Cashier recognized repeat buyer ('brown jacket guy'), same gift card (A93) used as T001 at different store within 2 hours, fast transaction pattern",
+      "recommended_action": "Share description with security team, implement purchase tracking system"
+    },
+    {
+      "txn_id": "T003",
+      "store_id": "NJ-003",
+      "products": [
+        "PS5 Console",
+        "Pokemon ETB"
+      ],
+      "quantity": 2,
+      "confidence": 0.82,
+      "risk_level": "HIGH",
+      "reason": "Purchased 2 high-value consoles, cashier noted emotionless transaction and stacked gift cards, inconsistent with genuine gift purchase behavior",
+      "recommended_action": "Monitor for repeat visits, implement ID check policy for high-value electronics"
+    },
+    {
+      "txn_id": "T004",
+      "store_id": "NYC-014",
+      "products": [
+        "Pokemon ETB"
+      ],
+      "quantity": 3,
+      "confidence": 0.85,
+      "risk_level": "MEDIUM-HIGH",
+      "reason": "Checking SKU date codes and demanding sealed boxes indicates knowledge of collector market and intent to resell, part of gift card network (C77)",
+      "recommended_action": "Limit Pokemon ETB purchases per customer, monitor for returns/exchanges"
+    },
+    {
+      "txn_id": "T005",
+      "store_id": "NYC-099",
+      "products": [
+        "PS5 Console"
+      ],
+      "quantity": 1,
+      "confidence": 0.87,
+      "risk_level": "HIGH",
+      "reason": "Asked about inventory at other stores, same gift card (C77) as T004, coordinated multi-store purchasing pattern",
+      "recommended_action": "Cross-reference with other stores, share buyer description across NYC region"
+    },
+    {
+      "txn_id": "T006",
+      "store_id": "LA-021",
+      "products": [
+        "AirPods Pro"
+      ],
+      "quantity": 2,
+      "confidence": 0.05,
+      "risk_level": "LOW",
+      "reason": "Normal family purchase with credit card, cashier noted nothing unusual",
+      "recommended_action": "No action required - legitimate transaction"
+    },
+    {
+      "txn_id": "T007",
+      "store_id": "NYC-027",
+      "products": [
+        "PS5 Console"
+      ],
+      "quantity": 1,
+      "confidence": 0.93,
+      "risk_level": "HIGH",
+      "reason": "Cashier noted 'different guy but exact same script' - indicates coordinated network operation, asking about stock at other locations, gift card D02 shared with T008",
+      "recommended_action": "High priority - evidence of organized network, coordinate with loss prevention team immediately"
+    },
+    {
+      "txn_id": "T008",
+      "store_id": "NJ-003",
+      "products": [
+        "Pokemon ETB"
+      ],
+      "quantity": 2,
+      "confidence": 0.89,
+      "risk_level": "HIGH",
+      "reason": "Carrying empty duffel bag (preparation for bulk purchases), asked about restock schedule (planning future purchases), same gift card (D02) as T007 at different store",
+      "recommended_action": "Alert store management, implement bag check policy, coordinate with NYC-027 on shared gift card usage"
+    }
+  ],
+  "responsible_ai_notes": "This analysis is based on transactional patterns, cashier observations, and payment methods. While confidence scores are provided, these are risk indicators and not definitive proof of illegal activity. Recommendations should be implemented with consideration for: (1) Customer privacy rights - individuals may have legitimate reasons for purchasing multiple items; (2) Bias mitigation - physical descriptions or behavioral patterns should not lead to profiling; (3) Due process - suspected fraud should be investigated through proper channels before any punitive action; (4) Gift card legitimacy - cards may have been purchased legally even if used for reselling purposes; (5) Geographic correlation may be coincidental. All flagged transactions should undergo human review before final action. Store policies should be applied consistently to all customers regardless of appearance or perceived intent. If gift cards are suspected to be fraudulent (obtained through scams/theft), coordinate with law enforcement. If reselling is the primary concern, implement fair purchase limits that apply to all customers.",
+  "report_generated_at": "2026-05-27T20:24:47.225889Z",
+  "validation": {
+    "passed": true,
+    "issues": []
+  }
+}
