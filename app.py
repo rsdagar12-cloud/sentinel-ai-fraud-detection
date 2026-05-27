@@ -1,955 +1,667 @@
-import json
-from datetime import datetime
-from io import StringIO
-
-import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import plotly.graph_objects as go
 
+st.set_page_config(page_title='Sentinel | Retail Leakage Control Tower', layout='wide', page_icon='🛡️')
 
-st.set_page_config(
-    page_title="Sentinel | Retail Leakage Control Tower",
-    page_icon="🛡️",
-    layout="wide"
-)
-
-
-# -----------------------------
-# CSS
-# -----------------------------
-
-st.markdown("""
+# ---------- Styling ----------
+CUSTOM_CSS = """
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-
-html, body, [class*="css"] {
-    font-family: 'Inter', sans-serif;
-}
-
-.block-container {
-    padding-top: 1.6rem;
-    padding-bottom: 3rem;
-    max-width: 1280px;
-}
-
-h1 {
-    font-size: 3.1rem !important;
-    font-weight: 900 !important;
-    letter-spacing: -1.8px;
-}
-
-h2 {
-    font-size: 1.65rem !important;
-    font-weight: 800 !important;
-    letter-spacing: -0.6px;
-    margin-top: 1.7rem;
-}
-
-h3 {
-    font-size: 1.1rem !important;
-    font-weight: 750 !important;
-}
-
-.hero {
-    background: radial-gradient(circle at top left, #1e40af 0, #0f172a 42%, #020617 100%);
-    border: 1px solid #1e293b;
-    border-radius: 26px;
-    padding: 34px 36px;
-    margin-bottom: 24px;
-    box-shadow: 0 18px 45px rgba(0,0,0,0.35);
-}
-
-.hero-kicker {
-    color: #93c5fd;
-    font-size: 0.86rem;
-    font-weight: 800;
-    letter-spacing: 1.8px;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-}
-
-.hero-title {
-    color: #f8fafc;
-    font-size: 3.5rem;
-    line-height: 0.98;
-    font-weight: 950;
-    letter-spacing: -2.2px;
-    margin-bottom: 16px;
-}
-
-.hero-sub {
-    color: #cbd5e1;
-    font-size: 1.05rem;
-    max-width: 760px;
-    line-height: 1.5;
-}
-
-.kpi {
-    background: #0f172a;
-    border: 1px solid #263449;
-    border-radius: 22px;
-    padding: 22px 22px;
-    min-height: 136px;
-    box-shadow: 0 10px 26px rgba(0,0,0,0.24);
-}
-
-.kpi-red { border-top: 5px solid #ef4444; }
-.kpi-orange { border-top: 5px solid #f59e0b; }
-.kpi-blue { border-top: 5px solid #38bdf8; }
-.kpi-green { border-top: 5px solid #22c55e; }
-
-.kpi-label {
-    color: #94a3b8;
-    font-size: 0.82rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-}
-
-.kpi-value {
-    color: #f8fafc;
-    font-size: 2.15rem;
-    font-weight: 900;
-    margin-top: 8px;
-}
-
-.kpi-caption {
-    color: #cbd5e1;
-    font-size: 0.88rem;
-    margin-top: 5px;
-    line-height: 1.35;
-}
-
-.panel {
-    background: #0f172a;
-    border: 1px solid #263449;
-    border-radius: 22px;
-    padding: 24px;
-    margin-bottom: 18px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.18);
-}
-
-.panel-soft {
-    background: linear-gradient(135deg, rgba(15,23,42,0.96), rgba(30,41,59,0.9));
-    border: 1px solid #334155;
-    border-radius: 22px;
-    padding: 24px;
-    margin-bottom: 18px;
-}
-
-.big-number {
-    font-size: 2.5rem;
-    font-weight: 950;
-    color: #f8fafc;
-}
-
-.muted {
-    color: #94a3b8;
-    font-size: 0.92rem;
-}
-
-.card-title {
-    font-size: 1.05rem;
-    font-weight: 850;
-    color: #f8fafc;
-    margin-bottom: 6px;
-}
-
-.card-text {
-    color: #cbd5e1;
-    font-size: 0.93rem;
-    line-height: 1.4;
-}
-
-.flow-card {
-    background: #0b1220;
-    border: 1px solid #243044;
-    border-radius: 20px;
-    padding: 20px;
-    min-height: 148px;
-    text-align: center;
-}
-
-.flow-icon {
-    font-size: 2.25rem;
-    margin-bottom: 8px;
-}
-
-.flow-title {
-    color: #f8fafc;
-    font-weight: 850;
-    font-size: 1rem;
-}
-
-.flow-text {
-    color: #94a3b8;
-    font-size: 0.82rem;
-    margin-top: 6px;
-}
-
-.arrow {
-    color: #38bdf8;
-    font-size: 2rem;
-    text-align: center;
-    margin-top: 48px;
-}
-
-.action-now {
-    background: linear-gradient(135deg, #7f1d1d, #450a0a);
-    border: 1px solid #ef4444;
-    border-radius: 22px;
-    padding: 24px;
-    color: white;
-}
-
-.action-good {
-    background: linear-gradient(135deg, #064e3b, #052e2b);
-    border: 1px solid #10b981;
-    border-radius: 22px;
-    padding: 24px;
-    color: white;
-}
-
-.badge {
-    display: inline-block;
-    padding: 6px 11px;
-    border-radius: 999px;
-    font-weight: 850;
-    font-size: 0.76rem;
-}
-
-.badge-red { background: #7f1d1d; color: #fecaca; }
-.badge-orange { background: #78350f; color: #fde68a; }
-.badge-green { background: #064e3b; color: #a7f3d0; }
-.badge-blue { background: #1e3a8a; color: #bfdbfe; }
-
-.stButton > button {
-    border-radius: 12px;
-    font-weight: 800;
-    padding: 0.65rem 1rem;
-}
-
-[data-testid="stSidebar"] {
-    background: #020617;
-}
-
-[data-testid="stSidebar"] * {
-    font-family: 'Inter', sans-serif;
-}
-
-.small-table {
-    font-size: 0.86rem;
-}
+    .stApp {
+        background:
+            radial-gradient(circle at 10% 10%, rgba(30,64,175,0.18), transparent 32%),
+            radial-gradient(circle at 90% 20%, rgba(16,185,129,0.08), transparent 26%),
+            linear-gradient(180deg, #020617 0%, #081224 55%, #020617 100%);
+        color: #e5eefb;
+    }
+    section[data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #07111f 0%, #08111d 100%);
+        border-right: 1px solid rgba(148,163,184,0.12);
+    }
+    h1, h2, h3, h4 { color: #f8fafc !important; }
+    .hero {
+        background: linear-gradient(135deg, rgba(30,64,175,0.95), rgba(15,23,42,0.98));
+        border: 1px solid rgba(96,165,250,0.18);
+        border-radius: 26px;
+        padding: 26px 30px;
+        box-shadow: 0 20px 48px rgba(2,6,23,0.45);
+        margin-bottom: 18px;
+    }
+    .hero-tag {
+        display: inline-block;
+        color: #bfdbfe;
+        font-size: 0.78rem;
+        letter-spacing: 1.4px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+    .hero-title {
+        font-size: 3rem;
+        line-height: 0.98;
+        font-weight: 950;
+        letter-spacing: -1.8px;
+        color: #ffffff;
+        margin-bottom: 12px;
+    }
+    .hero-sub {
+        color: #dbeafe;
+        font-size: 1rem;
+        line-height: 1.45;
+        max-width: 900px;
+    }
+    .kpi-card {
+        background: rgba(11,18,32,0.95);
+        border: 1px solid rgba(148,163,184,0.16);
+        border-radius: 22px;
+        padding: 18px 18px;
+        min-height: 120px;
+        box-shadow: 0 14px 26px rgba(0,0,0,0.22);
+    }
+    .kpi-label {
+        color: #a5b4fc;
+        font-size: 0.76rem;
+        font-weight: 800;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .kpi-value {
+        color: #ffffff;
+        font-size: 2rem;
+        font-weight: 950;
+        margin-top: 6px;
+        line-height: 1.0;
+    }
+    .kpi-note {
+        color: #cbd5e1;
+        font-size: 0.92rem;
+        margin-top: 6px;
+        line-height: 1.25;
+    }
+    .quick-bar {
+        background: linear-gradient(90deg, rgba(14,165,233,0.14), rgba(34,197,94,0.14));
+        border: 1px solid rgba(56,189,248,0.25);
+        border-radius: 16px;
+        padding: 14px 16px;
+        color: #e0f2fe;
+        font-size: 0.98rem;
+        font-weight: 700;
+        margin: 14px 0 10px 0;
+    }
+    .panel {
+        background: rgba(8,15,28,0.92);
+        border: 1px solid rgba(148,163,184,0.14);
+        border-radius: 22px;
+        padding: 18px;
+        box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+        margin-bottom: 16px;
+    }
+    .panel-title {
+        color: #f8fafc;
+        font-size: 1.15rem;
+        font-weight: 850;
+        margin-bottom: 12px;
+    }
+    .mini-card {
+        background: rgba(10,17,32,0.95);
+        border: 1px solid rgba(148,163,184,0.14);
+        border-radius: 18px;
+        padding: 16px;
+        height: 100%;
+    }
+    .mini-title {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 800;
+        margin-bottom: 8px;
+    }
+    .mini-copy {
+        color: #cbd5e1;
+        font-size: 0.93rem;
+        line-height: 1.4;
+    }
+    .flow-card {
+        background: rgba(9,16,30,0.95);
+        border: 1px solid rgba(96,165,250,0.12);
+        border-radius: 18px;
+        padding: 16px;
+        text-align: left;
+        min-height: 130px;
+    }
+    .flow-number {
+        color: #93c5fd;
+        font-size: 1.7rem;
+        font-weight: 900;
+        margin-bottom: 6px;
+    }
+    .flow-title {
+        color: #ffffff;
+        font-size: 1rem;
+        font-weight: 850;
+        margin-bottom: 6px;
+    }
+    .flow-copy {
+        color: #cbd5e1;
+        font-size: 0.9rem;
+        line-height: 1.35;
+    }
+    .value-line {
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        gap:12px;
+        background: rgba(10,17,30,0.96);
+        border: 1px solid rgba(148,163,184,0.14);
+        border-radius: 14px;
+        padding: 13px 14px;
+        margin-bottom: 10px;
+    }
+    .value-label {
+        color:#cbd5e1;
+        font-weight:700;
+        font-size:0.95rem;
+    }
+    .value-num {
+        color:#ffffff;
+        font-weight:950;
+        font-size:1.1rem;
+        text-align:right;
+    }
+    .story-box {
+        background: linear-gradient(135deg, rgba(251,191,36,0.12), rgba(59,130,246,0.10));
+        border: 1px solid rgba(251,191,36,0.28);
+        border-radius: 18px;
+        padding: 16px;
+    }
+    .story-title {
+        color: #fde68a;
+        font-weight: 850;
+        margin-bottom: 8px;
+        font-size: 0.98rem;
+    }
+    div[data-testid="stMetric"] {
+        background: rgba(8,15,28,0.8);
+        border: 1px solid rgba(148,163,184,0.12);
+        border-radius: 16px;
+        padding: 8px 12px;
+    }
 </style>
-""", unsafe_allow_html=True)
+"""
 
+st.markdown(CUSTOM_CSS, unsafe_allow_html=True)
 
-# -----------------------------
-# Core logic
-# -----------------------------
+# ---------- Helpers ----------
+def money(x):
+    return f"${x:,.0f}"
 
-def money(value):
-    try:
-        return f"${int(value):,}"
-    except Exception:
-        return "$0"
+def first_existing(cols, options):
+    lowered = {c.lower(): c for c in cols}
+    for opt in options:
+        if opt.lower() in lowered:
+            return lowered[opt.lower()]
+    return None
 
-
-def normalize_columns(df):
-    df = df.copy()
-    df.columns = [c.strip().lower().replace(" ", "_") for c in df.columns]
-    return df
-
-
-def estimate_unit_value(product):
-    p = str(product).lower()
-    if "iphone" in p or "phone" in p:
-        return 950
-    if "ps5" in p or "console" in p:
-        return 650
-    if "airpods" in p:
-        return 250
-    if "pokemon" in p or "etb" in p:
-        return 120
-    if "ipad" in p or "tablet" in p:
-        return 700
-    return 150
-
-
-def build_sample_data():
-    return pd.DataFrame([
-        {
-            "txn_id": "T101",
-            "store_id": "Union Station",
-            "products": "PS5 Console",
-            "quantity": 1,
-            "payment_method": "GiftCard-A93",
-            "cashier_note": "Customer paid with stack of gift cards and asked if more were available in back"
-        },
-        {
-            "txn_id": "T102",
-            "store_id": "Eaton Centre",
-            "products": "PS5 Console",
-            "quantity": 1,
-            "payment_method": "GiftCard-A93",
-            "cashier_note": "Same buyer pattern noted from previous day and declined receipt"
-        },
-        {
-            "txn_id": "T103",
-            "store_id": "Yorkdale",
-            "products": "Pokemon ETB",
-            "quantity": 2,
-            "payment_method": "GiftCard-B14",
-            "cashier_note": "Customer asked about restock schedule and carried empty duffel bag"
-        },
-        {
-            "txn_id": "T104",
-            "store_id": "Union Station",
-            "products": "AirPods Pro",
-            "quantity": 1,
-            "payment_method": "Visa-4421",
-            "cashier_note": "Normal family purchase nothing unusual"
-        },
-        {
-            "txn_id": "T105",
-            "store_id": "Scarborough",
-            "products": "Pokemon ETB",
-            "quantity": 3,
-            "payment_method": "GiftCard-B14",
-            "cashier_note": "Asked for sealed boxes and stock at other stores"
-        },
-        {
-            "txn_id": "T106",
-            "store_id": "Union Station",
-            "products": "iPhone 15",
-            "quantity": 1,
-            "payment_method": "Visa-8842",
-            "cashier_note": "Customer asked about activation options and accessories"
-        },
-        {
-            "txn_id": "T107",
-            "store_id": "Yorkdale",
-            "products": "PS5 Console",
-            "quantity": 1,
-            "payment_method": "GiftCard-A93",
-            "cashier_note": "Asked about stock at other stores and left quickly"
-        },
-        {
-            "txn_id": "T108",
-            "store_id": "Eaton Centre",
-            "products": "Pokemon ETB",
-            "quantity": 2,
-            "payment_method": "GiftCard-B14",
-            "cashier_note": "Asked for sealed boxes and declined receipt"
-        }
+def create_demo_data():
+    data = [
+        ["T001", "2026-05-20 10:04", "Union Station", "Xbox Series X", 2, 649, "CARD_8841", "C201"],
+        ["T002", "2026-05-20 13:10", "Eaton Centre", "Xbox Series X", 3, 649, "CARD_8841", "C202"],
+        ["T003", "2026-05-20 15:05", "Scarborough Town", "Xbox Series X", 2, 649, "CARD_8841", "C203"],
+        ["T004", "2026-05-20 16:12", "Square One", "Xbox Series X", 1, 649, "CARD_8841", "C204"],
+        ["T005", "2026-05-21 11:30", "Union Station", "AirPods Pro", 1, 329, "CARD_9211", "C205"],
+        ["T006", "2026-05-21 12:40", "Eaton Centre", "iPhone 15", 2, 1129, "CARD_2230", "C206"],
+        ["T007", "2026-05-21 13:15", "Union Station", "PlayStation 5", 2, 649, "CARD_6200", "C207"],
+        ["T008", "2026-05-21 15:50", "Scarborough Town", "Nintendo Switch OLED", 2, 449, "CARD_6200", "C208"],
+        ["T009", "2026-05-22 10:08", "Square One", "Xbox Series X", 2, 649, "CARD_8841", "C209"],
+        ["T010", "2026-05-22 14:24", "Union Station", "MacBook Air", 1, 1499, "CARD_4040", "C210"],
+        ["T011", "2026-05-22 17:05", "Eaton Centre", "Xbox Series X", 2, 649, "CARD_8841", "C211"],
+        ["T012", "2026-05-22 18:15", "Square One", "Gift Card", 6, 100, "CARD_7711", "C212"],
+        ["T013", "2026-05-23 11:45", "Scarborough Town", "Xbox Series X", 3, 649, "CARD_8841", "C213"],
+        ["T014", "2026-05-23 12:55", "Union Station", "Xbox Series X", 2, 649, "CARD_8841", "C214"],
+        ["T015", "2026-05-23 16:35", "Eaton Centre", "Samsung S24", 2, 1199, "CARD_5300", "C215"],
+    ]
+    return pd.DataFrame(data, columns=[
+        "transaction_id", "timestamp", "store", "product", "quantity", "unit_price", "payment_signal", "customer_id"
     ])
 
+def normalize_transactions(df: pd.DataFrame) -> pd.DataFrame:
+    df = df.copy()
+    cols = list(df.columns)
 
-def analyze_transactions(df):
-    df = normalize_columns(df)
-
-    required = ["txn_id", "store_id", "products", "quantity", "payment_method", "cashier_note"]
-    missing = [c for c in required if c not in df.columns]
-
-    if missing:
-        return {
-            "error": f"Missing required columns: {', '.join(missing)}",
-            "required_columns": required
-        }
-
-    rows = []
-
-    for _, row in df.iterrows():
-        txn_id = str(row["txn_id"])
-        store = str(row["store_id"])
-        product = str(row["products"])
-        payment = str(row["payment_method"])
-        note = str(row["cashier_note"])
-
-        try:
-            qty = int(row["quantity"])
-        except Exception:
-            qty = 1
-
-        p = product.lower()
-        pay = payment.lower()
-        n = note.lower()
-
-        score = 0
-        signals = []
-
-        if any(x in p for x in ["ps5", "console", "pokemon", "etb", "iphone", "airpods", "ipad"]):
-            score += 25
-            signals.append("hot product")
-
-        if "giftcard" in pay or "gift card" in pay:
-            score += 25
-            signals.append("gift card signal")
-
-        if qty >= 2:
-            score += 15
-            signals.append("multi-unit buy")
-
-        behavior_terms = [
-            "stack", "declined receipt", "restock", "stock", "same buyer",
-            "previous day", "empty duffel", "sealed", "other stores", "more available"
-        ]
-
-        hits = [x for x in behavior_terms if x in n]
-        if hits:
-            score += min(35, 10 * len(hits))
-            signals.append("cashier note signal")
-
-        confidence = min(score / 100, 0.95)
-
-        if confidence >= 0.75:
-            risk = "HIGH"
-        elif confidence >= 0.45:
-            risk = "MEDIUM"
-        else:
-            risk = "LOW"
-
-        value = estimate_unit_value(product) * qty
-
-        rows.append({
-            "txn_id": txn_id,
-            "store": store,
-            "product": product,
-            "quantity": qty,
-            "payment_signal": payment,
-            "risk": risk,
-            "confidence": round(confidence, 2),
-            "inventory_value": value,
-            "signals": " · ".join(signals) if signals else "normal pattern",
-            "manager_move": (
-                "Review before next restock"
-                if risk == "HIGH"
-                else "Monitor"
-                if risk == "MEDIUM"
-                else "No action"
-            )
-        })
-
-    result_df = pd.DataFrame(rows)
-    risky = result_df[result_df["risk"].isin(["HIGH", "MEDIUM"])]
-    high = result_df[result_df["risk"] == "HIGH"]
-    medium = result_df[result_df["risk"] == "MEDIUM"]
-    low = result_df[result_df["risk"] == "LOW"]
-
-    networks = []
-    gift = risky[risky["payment_signal"].str.contains("GiftCard|gift card", case=False, na=False)]
-
-    network_id = 1
-    for payment, group in gift.groupby("payment_signal"):
-        if group["txn_id"].nunique() >= 2 or group["store"].nunique() >= 2:
-            networks.append({
-                "network": f"N-{network_id}",
-                "signal": payment,
-                "stores": sorted(group["store"].unique().tolist()),
-                "transactions": sorted(group["txn_id"].unique().tolist()),
-                "products": sorted(group["product"].unique().tolist()),
-                "exposure": int(group["inventory_value"].sum()),
-                "confidence": round(float(group["confidence"].mean()), 2)
-            })
-            network_id += 1
-
-    inventory_at_risk = int(risky["inventory_value"].sum()) if not risky.empty else 0
-    protected_inventory = int(inventory_at_risk * 0.35)
-    customer_visits_protected = max(1, int(len(risky) * 0.45)) if not risky.empty else 0
-    attach_revenue = customer_visits_protected * 175
-    review_minutes_saved = len(result_df) * 8
-
-    store_df = pd.DataFrame()
-    if not risky.empty:
-        store_df = (
-            risky.groupby("store")
-            .agg(
-                flagged=("txn_id", "count"),
-                exposure=("inventory_value", "sum"),
-                avg_confidence=("confidence", "mean")
-            )
-            .reset_index()
-            .sort_values("exposure", ascending=False)
-        )
-        store_df["avg_confidence"] = store_df["avg_confidence"].round(2)
-
-    product_df = pd.DataFrame()
-    if not risky.empty:
-        product_df = (
-            risky.groupby("product")
-            .agg(
-                flagged=("txn_id", "count"),
-                exposure=("inventory_value", "sum")
-            )
-            .reset_index()
-            .sort_values("exposure", ascending=False)
-        )
-
-    return {
-        "summary": {
-            "transactions": len(result_df),
-            "high": len(high),
-            "medium": len(medium),
-            "low": len(low),
-            "stores_hit": risky["store"].nunique() if not risky.empty else 0,
-            "networks": len(networks),
-            "inventory_at_risk": inventory_at_risk,
-            "protected_inventory": protected_inventory,
-            "attach_revenue": attach_revenue,
-            "customer_visits": customer_visits_protected,
-            "review_minutes_saved": review_minutes_saved,
-            "avg_confidence": round(float(result_df["confidence"].mean()), 2)
-        },
-        "transactions": result_df.to_dict("records"),
-        "stores": store_df.to_dict("records") if not store_df.empty else [],
-        "products": product_df.to_dict("records") if not product_df.empty else [],
-        "networks": networks,
-        "generated_at": datetime.utcnow().isoformat() + "Z"
+    mapping = {
+        "transaction_id": first_existing(cols, ["transaction_id", "txn_id", "id", "transaction"]),
+        "timestamp": first_existing(cols, ["timestamp", "date", "datetime", "time"]),
+        "store": first_existing(cols, ["store", "store_id", "location", "branch"]),
+        "product": first_existing(cols, ["product", "item", "sku", "category"]),
+        "quantity": first_existing(cols, ["quantity", "qty", "units"]),
+        "unit_price": first_existing(cols, ["unit_price", "price", "amount", "value", "ticket"]),
+        "payment_signal": first_existing(cols, ["payment_signal", "payment_method", "payment", "card", "payment_id"]),
+        "customer_id": first_existing(cols, ["customer_id", "customer", "client", "user_id"]),
     }
 
+    out = pd.DataFrame()
+    out["transaction_id"] = df[mapping["transaction_id"]] if mapping["transaction_id"] else [f"TX{i+1:03d}" for i in range(len(df))]
+    out["timestamp"] = pd.to_datetime(df[mapping["timestamp"]], errors="coerce") if mapping["timestamp"] else pd.Timestamp.today()
+    out["store"] = df[mapping["store"]].astype(str) if mapping["store"] else "Store A"
+    out["product"] = df[mapping["product"]].astype(str) if mapping["product"] else "Unknown Product"
+    out["quantity"] = pd.to_numeric(df[mapping["quantity"]], errors="coerce").fillna(1).clip(lower=1) if mapping["quantity"] else 1
+    out["unit_price"] = pd.to_numeric(df[mapping["unit_price"]], errors="coerce").fillna(100) if mapping["unit_price"] else 100
+    out["payment_signal"] = df[mapping["payment_signal"]].astype(str) if mapping["payment_signal"] else [f"SIG_{i%5}" for i in range(len(df))]
+    out["customer_id"] = df[mapping["customer_id"]].astype(str) if mapping["customer_id"] else [f"C{i+1:03d}" for i in range(len(df))]
+    out["total_value"] = out["quantity"] * out["unit_price"]
+    out["date"] = out["timestamp"].dt.date
+    return out
 
-def ensure_demo_loaded():
+def analyze_transactions(raw_df: pd.DataFrame):
+    df = normalize_transactions(raw_df)
+
+    scarce_keywords = ["xbox", "playstation", "ps5", "iphone", "s24", "macbook", "switch", "airpods", "gpu", "gift card"]
+    df["scarce_flag"] = df["product"].str.lower().apply(lambda x: any(k in x for k in scarce_keywords))
+
+    signal_txn_count = df.groupby("payment_signal")["transaction_id"].transform("count")
+    signal_store_count = df.groupby("payment_signal")["store"].transform("nunique")
+    signal_units = df.groupby("payment_signal")["quantity"].transform("sum")
+    customer_txn_count = df.groupby("customer_id")["transaction_id"].transform("count")
+
+    score = np.zeros(len(df))
+    score += np.where(df["scarce_flag"], 25, 0)
+    score += np.where(df["quantity"] >= 2, 15, 0)
+    score += np.where(df["total_value"] >= 1000, 10, 0)
+    score += np.where(signal_txn_count >= 3, 20, 0)
+    score += np.where(signal_store_count >= 2, 20, 0)
+    score += np.where(signal_units >= 8, 15, 0)
+    score += np.where(customer_txn_count >= 2, 10, 0)
+
+    df["risk_score"] = score.astype(int)
+
+    def tier(s):
+        if s >= 70:
+            return "High"
+        if s >= 45:
+            return "Medium"
+        return "Low"
+
+    df["risk_tier"] = df["risk_score"].apply(tier)
+
+    def reason_row(r):
+        reasons = []
+        if r["scarce_flag"]:
+            reasons.append("scarce product")
+        if r["quantity"] >= 2:
+            reasons.append("multi-unit purchase")
+        if signal_txn_count.loc[r.name] >= 3:
+            reasons.append("repeat payment signal")
+        if signal_store_count.loc[r.name] >= 2:
+            reasons.append("cross-store pattern")
+        if signal_units.loc[r.name] >= 8:
+            reasons.append("cumulative volume")
+        return ", ".join(reasons) if reasons else "standard purchase"
+
+    df["reasons"] = df.apply(reason_row, axis=1)
+    flagged = df[df["risk_tier"].isin(["High", "Medium"])].copy().sort_values(["risk_score", "total_value"], ascending=False)
+
+    store_summary = flagged.groupby("store", dropna=False).agg(
+        flagged_transactions=("transaction_id", "count"),
+        exposure=("total_value", "sum"),
+        avg_risk=("risk_score", "mean")
+    ).reset_index().sort_values("exposure", ascending=False)
+
+    signal_summary = flagged.groupby("payment_signal", dropna=False).agg(
+        transactions=("transaction_id", "count"),
+        stores=("store", "nunique"),
+        units=("quantity", "sum"),
+        exposure=("total_value", "sum")
+    ).reset_index().sort_values(["stores", "exposure"], ascending=False)
+
+    inventory_exposure = float(flagged["total_value"].sum())
+    protected_inventory = round(inventory_exposure * 0.55, 0)
+    revenue_protected = round(protected_inventory * 0.125, 0)
+    review_minutes_saved = int(max(len(flagged) * 4, 12))
+    linked_signals = int((signal_summary["stores"] >= 2).sum()) if len(signal_summary) else 0
+    stores_hit = int(flagged["store"].nunique()) if len(flagged) else 0
+
+    summary = {
+        "transactions_reviewed": int(len(df)),
+        "flagged_transactions": int(len(flagged)),
+        "inventory_exposure": inventory_exposure,
+        "protected_inventory": protected_inventory,
+        "stores_hit": stores_hit,
+        "linked_signals": linked_signals,
+        "revenue_protected": revenue_protected,
+        "review_minutes_saved": review_minutes_saved,
+        "high_risk_count": int((flagged["risk_tier"] == "High").sum()),
+        "medium_risk_count": int((flagged["risk_tier"] == "Medium").sum()),
+    }
+
+    top_store = store_summary.iloc[0]["store"] if len(store_summary) else "No store"
+    top_signal = signal_summary.iloc[0]["payment_signal"] if len(signal_summary) else "No linked signal"
+
+    return {
+        "raw": raw_df,
+        "scored": df,
+        "flagged": flagged,
+        "store_summary": store_summary,
+        "signal_summary": signal_summary,
+        "summary": summary,
+        "top_store": top_store,
+        "top_signal": top_signal,
+    }
+
+def ensure_report():
     if "report" not in st.session_state:
-        df = build_sample_data()
-        st.session_state["demo_df"] = df
-        st.session_state["report"] = analyze_transactions(df)
+        demo = create_demo_data()
+        st.session_state.report = analyze_transactions(demo)
+        st.session_state.source_label = "Executive demo dataset"
 
-
-def kpi(label, value, caption, color):
+# ---------- Visual renderers ----------
+def hero(title, sub, tag="Retail Leakage Control Tower"):
     st.markdown(
         f"""
-        <div class="kpi kpi-{color}">
-            <div class="kpi-label">{label}</div>
-            <div class="kpi-value">{value}</div>
-            <div class="kpi-caption">{caption}</div>
+        <div class="hero">
+            <div class="hero-tag">{tag}</div>
+            <div class="hero-title">{title}</div>
+            <div class="hero-sub">{sub}</div>
         </div>
         """,
-        unsafe_allow_html=True
+        unsafe_allow_html=True,
     )
 
-
-def risk_badge(risk):
-    if risk == "HIGH":
-        return "🔴 HIGH"
-    if risk == "MEDIUM":
-        return "🟠 MEDIUM"
-    return "🟢 LOW"
-
-
-def csv_download(report):
-    df = pd.DataFrame(report["transactions"])
-    output = StringIO()
-    df.to_csv(output, index=False)
-    return output.getvalue()
-
-
-def make_bar_chart(df, x, y, title, color="#38bdf8"):
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        x=df[x],
-        y=df[y],
-        marker=dict(color=color, line=dict(width=0)),
-        text=df[y],
-        textposition="outside"
-    ))
-    fig.update_layout(
-        title=title,
-        height=360,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#e5e7eb"),
-        margin=dict(l=20, r=20, t=55, b=35),
-        xaxis=dict(gridcolor="#1f2937"),
-        yaxis=dict(gridcolor="#1f2937")
-    )
-    return fig
-
-
-def make_funnel_chart(report):
-    s = report["summary"]
-    values = [
-        max(s["inventory_at_risk"], 1),
-        max(s["protected_inventory"], 1),
-        max(s["attach_revenue"], 1),
-        max(s["customer_visits"] * 500, 1)
-    ]
-    labels = [
-        "Inventory exposure",
-        "Inventory protected",
-        "Attach revenue protected",
-        "Customer value protected"
-    ]
-
-    fig = go.Figure(go.Funnel(
-        y=labels,
-        x=values,
-        textinfo="value+percent initial",
-        marker=dict(color=["#ef4444", "#f59e0b", "#38bdf8", "#22c55e"])
-    ))
-
-    fig.update_layout(
-        height=390,
-        paper_bgcolor="rgba(0,0,0,0)",
-        plot_bgcolor="rgba(0,0,0,0)",
-        font=dict(color="#e5e7eb"),
-        margin=dict(l=20, r=20, t=35, b=20)
-    )
-    return fig
-
-
-def make_network_visual(report):
-    networks = report["networks"]
-    if not networks:
-        st.info("No linked store network found in this run.")
-        return
-
-    for n in networks:
-        stores = n["stores"]
-        signal = n["signal"]
-        exposure = money(n["exposure"])
-
-        st.markdown(
-            f"""
-            <div class="panel-soft">
-                <div class="card-title">💳 {signal} connects {len(stores)} stores</div>
-                <div class="muted">Exposure detected: <b>{exposure}</b> · Confidence: <b>{n['confidence']}</b></div>
-                <br>
-                <div style="font-size:1.15rem; color:#f8fafc; font-weight:800;">
-                    {"  →  ".join(stores)}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-
-# -----------------------------
-# Pages
-# -----------------------------
-
-def page_command_center():
-    ensure_demo_loaded()
-    report = st.session_state["report"]
-    s = report["summary"]
-
-    st.markdown("""
-    <div class="hero">
-        <div class="hero-kicker">Retail Leakage Control Tower</div>
-        <div class="hero-title">Resellers adapt.<br>Sentinel catches the shift.</div>
-        <div class="hero-sub">
-            Online bot defenses protect checkout. Sentinel focuses on the next battlefield:
-            human-proxy buying patterns across physical stores.
+def kpi_card(label, value, note):
+    st.markdown(
+        f"""
+        <div class="kpi-card">
+            <div class="kpi-label">{label}</div>
+            <div class="kpi-value">{value}</div>
+            <div class="kpi-note">{note}</div>
         </div>
-    </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True,
+    )
+
+def panel_open(title):
+    st.markdown(f'<div class="panel"><div class="panel-title">{title}</div>', unsafe_allow_html=True)
+
+def panel_close():
+    st.markdown('</div>', unsafe_allow_html=True)
+
+def make_store_chart(store_summary):
+    if store_summary.empty:
+        return go.Figure()
+    fig = px.bar(
+        store_summary,
+        x="store",
+        y="exposure",
+        text="flagged_transactions",
+        color="avg_risk",
+        color_continuous_scale="Reds",
+    )
+    fig.update_layout(
+        height=320,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e5eefb"),
+        margin=dict(l=10, r=10, t=10, b=10),
+        coloraxis_showscale=False,
+        xaxis_title="",
+        yaxis_title="Exposure ($)",
+    )
+    fig.update_traces(texttemplate="%{text} txn", textposition="outside")
+    return fig
+
+def make_risk_donut(summary):
+    vals = [summary["high_risk_count"], summary["medium_risk_count"], max(summary["transactions_reviewed"] - summary["flagged_transactions"], 0)]
+    fig = go.Figure(data=[go.Pie(
+        labels=["High", "Medium", "Low / clear"],
+        values=vals,
+        hole=0.62,
+        marker=dict(colors=["#fb7185", "#f59e0b", "#22c55e"]),
+        sort=False,
+        textinfo="label+value"
+    )])
+    fig.update_layout(
+        height=320,
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="#e5eefb"),
+        margin=dict(l=10, r=10, t=10, b=10),
+        showlegend=False,
+    )
+    return fig
+
+def render_command_center(report):
+    s = report["summary"]
+    hero(
+        "Resellers adapt. Sentinel catches the shift.",
+        "Retailers spend heavily blocking online bots. Sentinel focuses on the store-floor gap: repeated proxy buying patterns across locations, scarce products, and linked payment signals that still leak inventory.",
+    )
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        kpi("Inventory exposure", money(s["inventory_at_risk"]), "Value tied to high/medium risk signals", "red")
+        kpi_card("Inventory exposure", money(s["inventory_exposure"]), "Current value sitting behind flagged patterns")
     with c2:
-        kpi("Stores impacted", s["stores_hit"], "Locations needing manager attention", "orange")
+        kpi_card("Stores impacted", s["stores_hit"], "Locations where patterns need manager attention")
     with c3:
-        kpi("Linked signals", s["networks"], "Repeated payment patterns across stores", "blue")
+        kpi_card("Linked signals", s["linked_signals"], "Repeat payment or proxy behavior across stores")
     with c4:
-        kpi("Revenue protected", money(s["attach_revenue"]), "Estimated attach opportunity preserved", "green")
+        kpi_card("Revenue protected", money(s["revenue_protected"]), "Accessory / attach opportunity preserved")
 
-    st.markdown("## What is happening")
+    st.markdown(
+        f'<div class="quick-bar">In 10 seconds: {s["flagged_transactions"]} transactions deserve review, {money(s["inventory_exposure"])} is exposed, and the most concentrated activity sits in <b>{report["top_store"]}</b>.</div>',
+        unsafe_allow_html=True,
+    )
 
-    a, b = st.columns([1.05, 0.95])
+    left, right = st.columns([1.25, 1])
+    with left:
+        panel_open("Where the issue is concentrated")
+        st.plotly_chart(make_store_chart(report["store_summary"]), use_container_width=True)
+        st.caption("Labels show number of flagged transactions by store.")
+        panel_close()
+    with right:
+        panel_open("Risk mix")
+        st.plotly_chart(make_risk_donut(s), use_container_width=True)
+        panel_close()
 
+    st.markdown("## What leaders need to know")
+    a, b, c = st.columns(3)
     with a:
-        if s["high"] > 0:
-            st.markdown(
-                f"""
-                <div class="action-now">
-                    <div style="font-size:0.85rem; font-weight:900; letter-spacing:1.5px;">TODAY'S MOVE</div>
-                    <div style="font-size:1.8rem; font-weight:950; margin-top:8px;">
-                        Review {s["high"]} high-risk transaction(s) before the next restock.
-                    </div>
-                    <div style="margin-top:10px; color:#fecaca;">
-                        Pattern detected: hot products + repeated payment signals + store movement.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-        else:
-            st.markdown(
-                """
-                <div class="action-good">
-                    <div style="font-size:0.85rem; font-weight:900; letter-spacing:1.5px;">TODAY'S MOVE</div>
-                    <div style="font-size:1.8rem; font-weight:950; margin-top:8px;">
-                        No urgent high-risk pattern detected.
-                    </div>
-                    <div style="margin-top:10px; color:#bbf7d0;">
-                        Continue monitoring after launch periods and restocks.
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
-
+        st.markdown('<div class="mini-card"><div class="mini-title">1. The problem moved offline</div><div class="mini-copy">Bots may be blocked online, but human proxies can still split purchases across stores and keep each transaction looking ordinary.</div></div>', unsafe_allow_html=True)
     with b:
-        st.plotly_chart(make_funnel_chart(report), use_container_width=True)
+        st.markdown('<div class="mini-card"><div class="mini-title">2. Single transactions hide the pattern</div><div class="mini-copy">A cashier sees one sale. A district manager needs the full pattern across stores, products, and payment signals.</div></div>', unsafe_allow_html=True)
+    with c:
+        st.markdown('<div class="mini-card"><div class="mini-title">3. Better triage drives better outcomes</div><div class="mini-copy">Sentinel does not block sales. It tells managers what to inspect first so scarce inventory reaches genuine customers.</div></div>', unsafe_allow_html=True)
 
-    st.markdown("## The cat-and-mouse problem")
+    st.markdown("## Daily operating flow")
+    f1, f2, f3, f4 = st.columns(4)
+    flow_items = [
+        ("1", "Upload", "Pull the daily transaction file or use the store export."),
+        ("2", "Analyze", "Sentinel scores risk and links patterns that humans miss."),
+        ("3", "Review", "Managers see the exact stores, transactions, and signals to inspect."),
+        ("4", "Act", "Use the action plan to protect stock and capture genuine demand."),
+    ]
+    for col, (n, title, copy) in zip([f1, f2, f3, f4], flow_items):
+        with col:
+            st.markdown(f'<div class="flow-card"><div class="flow-number">{n}</div><div class="flow-title">{title}</div><div class="flow-copy">{copy}</div></div>', unsafe_allow_html=True)
 
-    f1, ar1, f2, ar2, f3, ar3, f4 = st.columns([2, .35, 2, .35, 2, .35, 2])
-
-    with f1:
-        st.markdown("""
-        <div class="flow-card">
-            <div class="flow-icon">🤖</div>
-            <div class="flow-title">Bots get blocked</div>
-            <div class="flow-text">Retailers invest in online queues, fraud rules, and purchase limits.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with ar1:
-        st.markdown('<div class="arrow">→</div>', unsafe_allow_html=True)
-    with f2:
-        st.markdown("""
-        <div class="flow-card">
-            <div class="flow-icon">🧍</div>
-            <div class="flow-title">Human proxies move in-store</div>
-            <div class="flow-text">Resellers use buyers, gift cards, scripts, and store-hopping.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with ar2:
-        st.markdown('<div class="arrow">→</div>', unsafe_allow_html=True)
-    with f3:
-        st.markdown("""
-        <div class="flow-card">
-            <div class="flow-icon">📦</div>
-            <div class="flow-title">Inventory leaks</div>
-            <div class="flow-text">Scarce products disappear before genuine customers get access.</div>
-        </div>
-        """, unsafe_allow_html=True)
-    with ar3:
-        st.markdown('<div class="arrow">→</div>', unsafe_allow_html=True)
-    with f4:
-        st.markdown("""
-        <div class="flow-card">
-            <div class="flow-icon">🛡️</div>
-            <div class="flow-title">Sentinel connects signals</div>
-            <div class="flow-text">Managers see the pattern early and act before the next restock.</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-
-def page_run_review():
-    st.title("Run Review")
-    st.caption("Upload a transaction CSV or use the demo scenario.")
-
-    c1, c2 = st.columns([1, 1])
-
-    with c1:
-        uploaded = st.file_uploader("Upload CSV", type=["csv"])
-
-        if uploaded:
-            df = pd.read_csv(uploaded)
-            st.session_state["uploaded_df"] = df
-            st.dataframe(df, use_container_width=True, hide_index=True)
-
-            if st.button("Analyze uploaded transactions", type="primary"):
-                st.session_state["report"] = analyze_transactions(df)
-                st.success("Analysis complete. Open Command Center or Store Network.")
-
-    with c2:
-        st.markdown("""
-        <div class="panel">
-            <div class="card-title">Demo scenario</div>
-            <div class="card-text">
-                Simulates a Best Buy Express-style high-demand product environment:
-                PS5, Pokémon ETB, iPhone, gift-card signals, and cross-store activity.
+    st.markdown("## Value snapshot")
+    v1, v2 = st.columns([1,1])
+    with v1:
+        st.markdown('<div class="panel">', unsafe_allow_html=True)
+        for label, value in [
+            ("Protected inventory opportunity", money(s["protected_inventory"])),
+            ("Attach / accessory revenue preserved", money(s["revenue_protected"])),
+            ("Manager review time saved", f'{s["review_minutes_saved"]} minutes'),
+            ("Transactions prioritized", s["flagged_transactions"]),
+        ]:
+            st.markdown(f'<div class="value-line"><div class="value-label">{label}</div><div class="value-num">{value}</div></div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
+    with v2:
+        st.markdown(
+            """
+            <div class="story-box">
+                <div class="story-title">Field insight behind the idea</div>
+                <div class="mini-copy">
+                Inspired by Rahul Singh’s retail-floor experience at Best Buy Express: a recurring pattern where a buyer repeatedly purchased scarce Xbox units in small batches, while similar activity appeared across other stores. No single transaction looked outrageous. The pattern did.
+                </div>
             </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        if st.button("Load demo scenario", type="primary"):
-            df = build_sample_data()
-            st.session_state["demo_df"] = df
-            st.session_state["report"] = analyze_transactions(df)
-            st.success("Demo loaded.")
-
-    with st.expander("Required CSV format"):
-        st.code("txn_id, store_id, products, quantity, payment_method, cashier_note")
-
-
-def page_store_network():
-    ensure_demo_loaded()
-    report = st.session_state["report"]
-
-    st.title("Store Network")
-    st.caption("Shows where individual transactions become a connected pattern.")
-
-    stores = pd.DataFrame(report["stores"])
-    products = pd.DataFrame(report["products"])
-
-    c1, c2 = st.columns(2)
-
-    with c1:
-        st.markdown("### Store exposure")
-        if not stores.empty:
-            st.plotly_chart(make_bar_chart(stores, "store", "exposure", "Inventory exposure by store", "#f97316"), use_container_width=True)
-        else:
-            st.info("No store exposure detected.")
-
-    with c2:
-        st.markdown("### Product exposure")
-        if not products.empty:
-            st.plotly_chart(make_bar_chart(products, "product", "exposure", "Exposure by product", "#38bdf8"), use_container_width=True)
-        else:
-            st.info("No product exposure detected.")
-
-    st.markdown("## Linked signals")
-    make_network_visual(report)
-
-    st.markdown("## Transaction queue")
-    tx = pd.DataFrame(report["transactions"])
-    if not tx.empty:
-        tx["risk"] = tx["risk"].apply(risk_badge)
-        tx["inventory_value"] = tx["inventory_value"].apply(money)
-        st.dataframe(
-            tx[["txn_id", "store", "product", "quantity", "payment_signal", "risk", "inventory_value", "signals", "manager_move"]],
-            use_container_width=True,
-            hide_index=True
+            """,
+            unsafe_allow_html=True,
+        )
+        st.markdown("<div style='height:12px'></div>", unsafe_allow_html=True)
+        st.markdown(
+            """
+            <div class="story-box">
+                <div class="story-title">Why this matters operationally</div>
+                <div class="mini-copy">
+                When scarce products go to proxy buyers, genuine customers leave empty-handed. Sentinel helps teams redirect stock to real demand, protect service attach, and reduce reactive manual chasing.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
 
+def render_run_review(report):
+    hero("Run a review", "Upload a CSV, or use the executive demo. Sentinel will score risk, flag linked patterns, and create a manager review queue.", tag="Operations Review")
+    st.info(f"Current dataset: {st.session_state.get('source_label', 'Not loaded')}")
 
-def page_action_plan():
-    ensure_demo_loaded()
-    report = st.session_state["report"]
+    col1, col2 = st.columns([1,1])
+    with col1:
+        if st.button("Load executive demo", use_container_width=True):
+            demo = create_demo_data()
+            st.session_state.report = analyze_transactions(demo)
+            st.session_state.source_label = "Executive demo dataset"
+            st.success("Executive demo loaded.")
+    with col2:
+        uploaded = st.file_uploader("Upload transaction CSV", type=["csv"])
+        if uploaded is not None:
+            try:
+                df = pd.read_csv(uploaded)
+                st.session_state.report = analyze_transactions(df)
+                st.session_state.source_label = uploaded.name
+                st.success(f"Loaded {uploaded.name}")
+            except Exception as e:
+                st.error(f"Could not read file: {e}")
+
+    flagged = report["flagged"].copy()
+    if flagged.empty:
+        st.warning("No medium/high risk transactions found in the current dataset.")
+        return
+
+    view = flagged[["transaction_id", "timestamp", "store", "product", "quantity", "total_value", "risk_score", "risk_tier", "payment_signal", "reasons"]].copy()
+    view["timestamp"] = view["timestamp"].astype(str)
+    view["total_value"] = view["total_value"].map(money)
+    st.markdown("## Priority review queue")
+    st.dataframe(view, use_container_width=True, hide_index=True)
+
+def render_store_network(report):
+    hero("Store network", "See how the pattern spreads across stores and which linked signals deserve district-level review.", tag="Network View")
+    store_summary = report["store_summary"]
+    signal_summary = report["signal_summary"]
+
+    a, b = st.columns([1.15, 1])
+    with a:
+        panel_open("Store exposure")
+        st.plotly_chart(make_store_chart(store_summary), use_container_width=True)
+        panel_close()
+    with b:
+        panel_open("Linked signals requiring review")
+        if signal_summary.empty:
+            st.write("No linked signals detected.")
+        else:
+            show = signal_summary[["payment_signal", "transactions", "stores", "units", "exposure"]].copy()
+            show["exposure"] = show["exposure"].map(money)
+            st.dataframe(show, use_container_width=True, hide_index=True)
+        panel_close()
+
+def render_action_plan(report):
     s = report["summary"]
-
-    st.title("Action Plan")
-    st.caption("A daily operating checklist for store leaders.")
-
+    hero("Action plan", "What a store manager, district manager, and operations lead should do next.", tag="Recommended Actions")
     c1, c2, c3 = st.columns(3)
+    cards = [
+        ("Today", "Review high-risk queue", f"Start with the {s['high_risk_count']} high-risk transactions and verify whether stock should be held for further review before the next restock cycle."),
+        ("This week", "Watch linked signals", f"Investigate repeat signals appearing across {s['stores_hit']} stores. The goal is to confirm whether the same buyer pattern is moving store to store."),
+        ("This month", "Tune policy and coaching", "Use what Sentinel surfaces to refine escalation rules, coach store teams on scarce-item reviews, and protect attach from demand leakage."),
+    ]
+    for col, (title, head, copy) in zip([c1, c2, c3], cards):
+        with col:
+            st.markdown(f'<div class="mini-card"><div class="mini-title">{title} · {head}</div><div class="mini-copy">{copy}</div></div>', unsafe_allow_html=True)
 
-    with c1:
-        st.markdown(f"""
-        <div class="panel-soft">
-            <span class="badge badge-red">NOW</span>
-            <div class="card-title" style="margin-top:12px;">Review high-risk transactions</div>
-            <div class="card-text">{s["high"]} urgent transaction(s). Prioritize scarce products and repeated payment signals.</div>
-        </div>
-        """, unsafe_allow_html=True)
+    st.markdown("## How teams use Sentinel")
+    x1, x2, x3 = st.columns(3)
+    with x1:
+        st.metric("Store manager", "5–10 min/day", "Quick review queue")
+        st.caption("Checks the flagged queue before releasing scarce stock or closing the day.")
+    with x2:
+        st.metric("District manager", "2–3 times/week", "Cross-store view")
+        st.caption("Looks for linked patterns across stores and escalates only what is materially connected.")
+    with x3:
+        st.metric("Operations lead", "Weekly", "Policy insight")
+        st.caption("Uses trend summaries to tune processes without overwhelming frontline teams.")
 
-    with c2:
-        st.markdown(f"""
-        <div class="panel-soft">
-            <span class="badge badge-orange">TODAY</span>
-            <div class="card-title" style="margin-top:12px;">Alert impacted stores</div>
-            <div class="card-text">{s["stores_hit"]} store(s) show risk concentration. Share the signal before the next rush.</div>
-        </div>
-        """, unsafe_allow_html=True)
+def render_business_case(report):
+    s = report["summary"]
+    hero("Business case", "A sharp explanation of the problem, the gap in today’s controls, and the value Sentinel creates.", tag="CEO View")
 
-    with c3:
-        st.markdown(f"""
-        <div class="panel-soft">
-            <span class="badge badge-green">NEXT RESTOCK</span>
-            <div class="card-title" style="margin-top:12px;">Protect genuine customers</div>
-            <div class="card-text">Use fair quantity limits and neutral cashier notes for high-demand launches.</div>
-        </div>
-        """, unsafe_allow_html=True)
+    row1a, row1b, row1c = st.columns(3)
+    with row1a:
+        st.markdown('<div class="mini-card"><div class="mini-title">The problem</div><div class="mini-copy">Major retailers invest heavily in anti-bot technology online, yet physical stores still face leakage from human proxies splitting purchases across locations.</div></div>', unsafe_allow_html=True)
+    with row1b:
+        st.markdown('<div class="mini-card"><div class="mini-title">Why current tools miss it</div><div class="mini-copy">Conventional reporting treats each transaction separately. Proxy behavior becomes visible only when product, payment, timing, and store patterns are connected.</div></div>', unsafe_allow_html=True)
+    with row1c:
+        st.markdown('<div class="mini-card"><div class="mini-title">Sentinel’s role</div><div class="mini-copy">Sentinel sits in the middle: not blocking sales, not replacing teams, but guiding scarce inventory decisions with explainable pattern detection.</div></div>', unsafe_allow_html=True)
 
-    st.markdown("## Role-based moves")
+    st.markdown("## Value hypothesis")
+    st.markdown('<div class="panel">', unsafe_allow_html=True)
+    for label, value in [
+        ("Inventory at risk identified", money(s["inventory_exposure"])),
+        ("Value likely protected if acted on", money(s["protected_inventory"])),
+        ("Attach revenue preserved", money(s["revenue_protected"])),
+        ("Manual review time reduced", f"~{s['review_minutes_saved']} min per cycle"),
+    ]:
+        st.markdown(f'<div class="value-line"><div class="value-label">{label}</div><div class="value-num">{value}</div></div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+    st.caption("These are directional operational estimates designed to show business value, not audited financial results.")
 
-    role_df = pd.DataFrame([
-        {
-            "Role": "Store associate",
-            "What to do": "Capture neutral notes: restock questions, repeated payment, quantity, and product type.",
-            "Why it matters": "Good notes create better review signals."
-        },
-        {
-            "Role": "Store manager",
-            "What to do": "Check high-risk queue after rush periods and before restocks.",
-            "Why it matters": "Stops leakage before inventory disappears again."
-        },
-        {
-            "Role": "Loss prevention",
-            "What to do": "Review linked payment signals across stores.",
-            "Why it matters": "Finds patterns a single store cannot see."
-        },
-        {
-            "Role": "District manager",
-            "What to do": "Compare store exposure and coach teams on consistent policy use.",
-            "Why it matters": "Improves fairness and reduces manual escalation."
-        }
-    ])
+def render_help():
+    hero("Help & user guidance", "Make the app usable in day-to-day retail operations with zero confusion.", tag="User Support")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown('<div class="mini-card"><div class="mini-title">What file should I upload?</div><div class="mini-copy">A transaction-level CSV with store, product, quantity, price, date, and a payment or customer identifier works best.</div></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="mini-card"><div class="mini-title">When should managers use it?</div><div class="mini-copy">Best practice: once before scarce-item restock decisions, and again at end-of-day for flagged reviews.</div></div>', unsafe_allow_html=True)
+    with col2:
+        st.markdown('<div class="mini-card"><div class="mini-title">What does Sentinel not do?</div><div class="mini-copy">It does not accuse customers or make final decisions. It prioritizes patterns so people can review them quickly and fairly.</div></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height:12px"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="mini-card"><div class="mini-title">How do I explain this to leadership?</div><div class="mini-copy">Sentinel protects scarce inventory, preserves attach revenue, and helps real customers leave with the products they came for.</div></div>', unsafe_allow_html=True)
 
-    st.dataframe(role_df, use_container_width=True, hide_index=True)
+# ---------- Sidebar ----------
+ensure_report()
+with st.sidebar:
+    st.markdown("## 🛡️ Sentinel")
+    st.caption("Retail Leakage Control Tower")
+    page = st.radio(
+        "Navigate",
+        ["Command Center", "Run Review", "Store Network", "Action Plan", "Business Case", "Help"],
+        label_visibility="collapsed",
+    )
+    st.markdown("---")
+    st.markdown("**Daily flow**")
+    st.caption("Upload → Analyze → Review → Act")
+    st.markdown("---")
+    st.caption(f"Current source: {st.session_state.get('source_label', 'Executive demo dataset')}")
 
-    st.markdown("## Downloads")
+report = st.session_state.report
 
-    c4, c5 = st.columns(2)
-    with c4:
-        st.download_button(
-            "Download JSON report",
-            json.dumps(report, indent=2),
-            "sentinel_report.json",
-            "application/json"
-        )
-    with c5:
-        st.download_button(
-            "Download CSV queue",
-            csv_download(report),
-            "sentinel_transaction_queue.csv",
-            "text/csv"
-        )
-
-
-def page_help():
-    st.title("Help")
-    st.caption("For daily users who need quick guidance.")
-
-    st.markdown("## How to use Sentinel in 30 seconds")
-
-    h1, h2, h3, h4 = st.columns(4)
-
-    with h1:
-        st.markdown('<div class="flow-card"><div class="flow-icon">⬆️</div><div class="flow-title">1. Upload</div><div class="flow-text">Add transaction CSV.</div></div>', unsafe_allow_html=True)
-    with h2:
-        st.markdown('<div class="flow-card"><div class="flow-icon">⚡</div><div class="flow-title">2. Analyze</div><div class="flow-text">Run review.</div></div>', unsafe_allow_html=True)
-    with h3:
-        st.markdown('<div class="flow-card"><div class="flow-icon">📍</div><div class="flow-title">3. Locate</div><div class="flow-text">See stores and linked signals.</div></div>', unsafe_allow_html=True)
-    with h4:
-        st.markdown('<div class="flow-card"><div class="flow-icon">✅</div><div class="flow-title">4. Act</div><div class="flow-text">Use the action plan.</div></div>', unsafe_allow_html=True)
-
-    st.markdown("## Guardrail")
-    st.warning("Sentinel does not prove fraud. It creates a manager review queue based on transaction patterns only.")
-
-
-# -----------------------------
-# Sidebar
-# -----------------------------
-
-st.sidebar.markdown("## 🛡️ Sentinel")
-st.sidebar.caption("Retail Leakage Control Tower")
-
-page = st.sidebar.radio(
-    "Navigation",
-    [
-        "Command Center",
-        "Run Review",
-        "Store Network",
-        "Action Plan",
-        "Help"
-    ],
-    label_visibility="collapsed"
-)
-
-st.sidebar.markdown("---")
-st.sidebar.markdown("### Daily flow")
-st.sidebar.write("Upload → Analyze → Review → Act")
-
+# ---------- Router ----------
 if page == "Command Center":
-    page_command_center()
+    render_command_center(report)
 elif page == "Run Review":
-    page_run_review()
+    render_run_review(report)
 elif page == "Store Network":
-    page_store_network()
+    render_store_network(report)
 elif page == "Action Plan":
-    page_action_plan()
-elif page == "Help":
-    page_help()
+    render_action_plan(report)
+elif page == "Business Case":
+    render_business_case(report)
+else:
+    render_help()
